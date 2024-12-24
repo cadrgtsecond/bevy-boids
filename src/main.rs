@@ -1,8 +1,13 @@
+use std::{any::Any, borrow::BorrowMut};
+
 use bevy::{
-    asset::RenderAssetUsages, math::bounding::Aabb2d, prelude::*, render::{
+    asset::RenderAssetUsages,
+    math::bounding::Aabb2d,
+    prelude::*,
+    render::{
         mesh::{Indices, PrimitiveTopology},
         render_resource::PolygonMode,
-    }
+    },
 };
 use rand::{distributions::Uniform, Rng};
 
@@ -11,6 +16,7 @@ fn main() {
     app.add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)
         .add_systems(Update, update_vel)
+        .add_systems(Update, boid_rules)
         .run();
 }
 
@@ -108,5 +114,30 @@ fn update_vel(
         if y + HEIGHT / 2.0 > window.height() / 2.0 {
             velocity.0.y = -(velocity.0.y.abs());
         }
+    }
+}
+
+fn boid_rules(
+    time: Res<Time>,
+    mut birds: Query<(&mut Velocity, &Transform)>,
+    others: Query<&Transform>,
+) {
+    // TODO: Use spacial queries to avoid nested loops
+    for (mut velocity, my_pos) in &mut birds {
+        let others = others
+            .iter()
+            .filter(|pos| pos.translation.distance(my_pos.translation) < 100.0)
+            .map(|t| t.translation);
+        let my_dir = velocity.0.normalize();
+
+        // Fly towards center
+        let (sum, len) = others.fold((Vec3::ZERO, 0_usize), |(pos1, count), pos2| {
+            (pos1 + pos2, count + 1)
+        });
+        let target = sum / len as f32;
+
+        let angle = my_dir.angle_between((target - my_pos.translation).normalize_or(my_dir));
+        let rot = Quat::from_rotation_z(angle * time.delta_secs());
+        velocity.0 = rot * velocity.0;
     }
 }
