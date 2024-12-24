@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy.version = "0.15.0"
 bevy.features = ["glam_assert"]
+bevy.version = "0.15.0"
+bevy_egui = "0.31.1"
+egui = "0.29.1"
 rand = "0.8.5"
