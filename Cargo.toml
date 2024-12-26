@@ -7,5 +7,6 @@ edition = "2021"
 bevy.features = ["glam_assert"]
 bevy.version = "0.15.0"
 bevy_egui = "0.31.1"
+bevy_spatial = "0.10.0"
 egui = "0.29.1"
 rand = "0.8.5"
